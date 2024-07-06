@@ -40,7 +40,7 @@ impl ShaderPairAgal {
             fragment_bytecode,
             fragment_sampler_configs,
             // TODO - figure out a good size for this cache.
-            compiled: RefCell::new(LruCache::new(NonZeroUsize::new(2).unwrap())),
+            compiled: RefCell::new(LruCache::new(NonZeroUsize::new(20).unwrap())),
         }
     }
 
