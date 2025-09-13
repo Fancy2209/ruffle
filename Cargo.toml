@@ -23,6 +23,7 @@ members = [
     "render/pixel_bender/assembly_tests",
     "render/wgpu",
     "render/webgl",
+    "render/gles",
 
     "stub-report",
 

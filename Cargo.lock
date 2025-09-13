@@ -4645,6 +4645,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "ruffle_render_gles"
+version = "0.1.0"
+dependencies = [
+ "bytemuck",
+ "glow",
+ "log",
+ "ruffle_render",
+ "sdl2",
+ "swf",
+ "thiserror 2.0.16",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "ruffle_render_webgl"
 version = "0.1.0"
 dependencies = [
@@ -5006,6 +5020,30 @@ dependencies = [
  "memmap2",
  "smithay-client-toolkit",
  "tiny-skia",
+]
+
+[[package]]
+name = "sdl2"
+version = "0.38.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2d42407afc6a8ab67e36f92e80b8ba34cbdc55aaeed05249efe9a2e8d0e9feef"
+dependencies = [
+ "bitflags 1.3.2",
+ "lazy_static",
+ "libc",
+ "sdl2-sys",
+]
+
+[[package]]
+name = "sdl2-sys"
+version = "0.38.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3ff61407fc75d4b0bbc93dc7e4d6c196439965fbef8e4a4f003a36095823eac0"
+dependencies = [
+ "cfg-if",
+ "libc",
+ "pkg-config",
+ "version-compare",
 ]
 
 [[package]]
@@ -6152,6 +6190,12 @@ dependencies = [
  "rustversion",
  "time",
 ]
+
+[[package]]
+name = "version-compare"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "579a42fc0b8e0c63b76519a339be31bed574929511fa53c1a3acae26eb258f29"
 
 [[package]]
 name = "version_check"

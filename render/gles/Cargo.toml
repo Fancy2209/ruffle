@@ -1,0 +1,21 @@
+[package]
+name = "ruffle_render_gles"
+authors.workspace = true
+edition.workspace = true
+homepage.workspace = true
+license.workspace = true
+repository.workspace = true
+version.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+log = { workspace = true }
+glow = "0.16.0"
+sdl2 = { version = "0.38.0", features = ["use-pkgconfig"] }
+ruffle_render = { path = "..", features = ["tessellator"] }
+wasm-bindgen = { workspace = true }
+bytemuck = { workspace = true, features = ["derive"] }
+swf = { path = "../../swf" }
+thiserror = { workspace = true }
