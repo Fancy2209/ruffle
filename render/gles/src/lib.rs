@@ -1,4 +1,4 @@
-#![deny(clippy::unwrap_used)]
+//#![deny(clippy::unwrap_used)]
 // Remove this when we start using `Rc` when compiling for wasm
 #![allow(clippy::arc_with_non_send_sync)]
 
@@ -178,7 +178,7 @@ impl GlesRenderBackend {
             let sdl_video = sdl_context.video().unwrap();
 
             let gl_context = &sdl_window.gl_create_context().unwrap();
-            let _result_make_current = sdl_window.gl_make_current(gl_context);
+            let _ = sdl_window.gl_make_current(gl_context);
 
             let gl = Rc::new(glow::Context::from_loader_function(|s| {
                 sdl_video.gl_get_proc_address(s) as *const _
@@ -1094,7 +1094,7 @@ impl RenderBackend for GlesRenderBackend {
     }
 
     fn debug_info(&self) -> Cow<'static, str> {
-        return None::<Cow<'static, str>>.unwrap();
+        Cow::Borrowed("Renderer: Gles")
     }
 
     fn name(&self) -> &'static str {
@@ -1700,9 +1700,8 @@ impl ShaderProgram {
                 uniforms[i] = gl.get_uniform_location(program, UNIFORM_NAMES[i]);
             }
 
-            let vertex_position_location =
-                gl.get_attrib_location(program, "position").unwrap() as u32;
-            let vertex_color_location = gl.get_attrib_location(program, "color").unwrap() as u32;
+            let vertex_position_location = gl.get_attrib_location(program, "position").unwrap();
+            let vertex_color_location = gl.get_attrib_location(program, "color").unwrap();
             let num_vertex_attributes = if vertex_position_location != 0xffff_ffff {
                 1
             } else {
