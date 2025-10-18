@@ -428,11 +428,12 @@ impl App {
 impl ApplicationHandler<RuffleEvent> for App {
     fn new_events(&mut self, event_loop: &ActiveEventLoop, cause: StartCause) {
         if cause == StartCause::Init {
-            let movie_url = self.preferences.cli.movie_url.clone();
+            let movie_url = Some(Url::from_file_path(std::env::current_exe().unwrap().parent().unwrap().join("Matts Hidden Cats.swf")).unwrap());
             let icon_bytes = include_bytes!("../assets/favicon-32.rgba");
             let icon =
-                Icon::from_rgba(icon_bytes.to_vec(), 32, 32).expect("App icon should be correct");
+                Icon::from_rgba(icon_bytes.to_vec(), 256, 256).expect("App icon should be correct");
 
+            self.preferences.cli.no_gui = true;
             let no_gui = self.preferences.cli.no_gui;
             let min_window_size = if no_gui {
                 (16, 16)
@@ -447,22 +448,24 @@ impl ApplicationHandler<RuffleEvent> for App {
             #[cfg_attr(not(target_os = "linux"), allow(unused_mut))]
             let mut window_attributes = WindowAttributes::default()
                 .with_visible(false)
-                .with_title("Ruffle")
+                .with_title("Matt's Hidden Cats")
                 .with_window_icon(Some(icon))
-                .with_min_inner_size(min_window_size);
+                .with_min_inner_size(min_window_size)
+                .with_resizable(false);
 
-            #[cfg(target_os = "linux")]
-            {
-                use winit::platform::startup_notify::{
-                    self, EventLoopExtStartupNotify, WindowAttributesExtStartupNotify,
-                };
-                use winit::platform::wayland::WindowAttributesExtWayland;
-                window_attributes = window_attributes.with_name("rs.ruffle.Ruffle", "main");
-                if let Some(token) = event_loop.read_token_from_env() {
-                    startup_notify::reset_activation_token_env();
-                    window_attributes = window_attributes.with_activation_token(token);
-                }
-            }
+           #[cfg(target_os = "linux")]
+           {
+               use winit::platform::startup_notify::{
+                   self, EventLoopExtStartupNotify, WindowAttributesExtStartupNotify,
+               };
+               use winit::platform::wayland::WindowAttributesExtWayland;
+               window_attributes = window_attributes.with_name("rs.ruffle.Ruffle", "main");
+               if let Some(token) = event_loop.read_token_from_env() {
+                   startup_notify::reset_activation_token_env();
+                   window_attributes = window_attributes.with_activation_token(token);
+                   window_attributes = window_attributes.with_resizable(false);
+               }
+           }
 
             let event_loop_proxy = self.event_loop_proxy.clone();
             let preferences = self.preferences.clone();
@@ -568,12 +571,25 @@ impl ApplicationHandler<RuffleEvent> for App {
                     .create_movie(&mut main_window.player, *options, url);
             }
 
+            (Some(main_window), RuffleEvent::Resize(width, height)) => {
+                if let Some(mut player) = main_window.player.get() {
+                    let width  =  width.max(1) as f64 * main_window.gui.window().scale_factor();
+                    let height = height.max(1) as f64 * main_window.gui.window().scale_factor();
+                    player.set_viewport_dimensions(ViewportDimensions {
+                        width: width as u32,
+                        height: height as u32,
+                        scale_factor: main_window.gui.window().scale_factor(),
+                    });
+                    let _ = main_window.gui.window().request_inner_size(PhysicalSize::new(width as f64, height as f64));
+                }
+            }
+
             (Some(main_window), RuffleEvent::OpenDialog(descriptor)) => {
                 main_window.gui.open_dialog(descriptor);
             }
 
             (Some(main_window), RuffleEvent::CloseFile) => {
-                main_window.gui.window().set_title("Ruffle"); // Reset title since file has been closed.
+                main_window.gui.window().set_title("Matt's Hidden Cats"); // Reset title since file has been closed.
                 main_window.gui.close_movie(&mut main_window.player);
             }
 
