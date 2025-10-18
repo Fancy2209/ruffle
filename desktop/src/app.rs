@@ -450,8 +450,7 @@ impl ApplicationHandler<RuffleEvent> for App {
                 .with_visible(false)
                 .with_title("Matt's Hidden Cats")
                 .with_window_icon(Some(icon))
-                .with_min_inner_size(min_window_size)
-                .with_resizable(false);
+                .with_min_inner_size(min_window_size);
 
            #[cfg(target_os = "linux")]
            {
@@ -463,7 +462,6 @@ impl ApplicationHandler<RuffleEvent> for App {
                if let Some(token) = event_loop.read_token_from_env() {
                    startup_notify::reset_activation_token_env();
                    window_attributes = window_attributes.with_activation_token(token);
-                   window_attributes = window_attributes.with_resizable(false);
                }
            }
 
@@ -472,6 +470,7 @@ impl ApplicationHandler<RuffleEvent> for App {
             let window = event_loop
                 .create_window(window_attributes)
                 .expect("Window should be created");
+            window.set_resizable(false);
             let max_window_size = get_screen_size(&window);
             window.set_max_inner_size(Some(max_window_size));
             let window = Arc::new(window);
@@ -580,7 +579,10 @@ impl ApplicationHandler<RuffleEvent> for App {
                         height: height as u32,
                         scale_factor: main_window.gui.window().scale_factor(),
                     });
-                    let _ = main_window.gui.window().request_inner_size(PhysicalSize::new(width as f64, height as f64));
+                    let inner_size = PhysicalSize::new(width as f64, height as f64);
+                    main_window.gui.window().set_min_inner_size(Some(inner_size));
+                    main_window.gui.window().set_max_inner_size(Some(inner_size));
+                    let _ = main_window.gui.window().request_inner_size(inner_size);
                 }
             }
 
