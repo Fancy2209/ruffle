@@ -195,6 +195,7 @@ impl MainWindow {
                 }
 
                 // Handle escaping from fullscreen.
+                /* Don't do this for Matt's Hidden Cats
                 if let KeyEvent {
                     state: ElementState::Pressed,
                     logical_key: Key::Named(NamedKey::Escape),
@@ -205,6 +206,7 @@ impl MainWindow {
                         .event_loop_proxy
                         .send_event(RuffleEvent::ExitFullScreen);
                 }
+                */
 
                 let key = winit_input_to_ruffle_key_descriptor(&event);
                 match event.state {
