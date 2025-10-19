@@ -122,9 +122,19 @@ jobs:
           tar -czvf ../${{ env.PACKAGE_FILE }} *
 
       - name: Upload build artifact
+        if: runner.os != 'Windows'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.build_name }}
           path: |
             ${{ env.CARGO_BUILD_DIR }}/ruffle_desktop
+            package
+
+      - name: Upload build artifact
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.build_name }}
+          path: |
+            ${{ env.CARGO_BUILD_DIR }}/ruffle_desktop.exe
             package
