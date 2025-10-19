@@ -60,8 +60,6 @@ jobs:
     steps:
       - name: Clone Ruffle repo
         uses: actions/checkout@v5
-        with:
-          ref: ${{ needs.create-nightly-release.outputs.tag_name }}
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
