@@ -32,10 +32,10 @@ FILESUBTYPE VFT2_UNKNOWN
         BLOCK "040904b0"
         {
             VALUE "CompanyName", "Kupo Games"
-            VALUE "FileDescription", "A scavenger-hunt adventure that spans 80 hand-crafted levels, including beautiful holiday destinations and fantasy themes."
+            VALUE "FileDescription", "Matt's Hidden Cats: A scavenger-hunt adventure!"
             VALUE "FileVersion", VER_FILEVERSION_STR
             VALUE "InternalName", "ruffle_desktop.exe"
-            VALUE "LegalCopyright", "Copyright (C) 2021"
+            VALUE "LegalCopyright", "Copyright (C) 2026"
             VALUE "OriginalFilename", "ruffle_desktop.exe"
             VALUE "ProductName", "Matt's Hidden Cats"
             VALUE "ProductVersion", VER_PRODUCTVERSION_STR
