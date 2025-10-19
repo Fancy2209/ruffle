@@ -11,8 +11,6 @@ on:
 jobs:
   build:
     name: Build ${{ matrix.build_name }}
-    needs: create-nightly-release
-    if: needs.create-nightly-release.outputs.is_active == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -52,7 +50,7 @@ jobs:
             MSI_ARCH: x64
 
     env:
-      PACKAGE_FILE: ${{ needs.create-nightly-release.outputs.package_prefix }}-${{ matrix.build_name }}.${{ startsWith(matrix.build_name, 'win') && 'zip' || 'tar.gz' }}
+      PACKAGE_FILE: ${{ matrix.build_name }}.${{ startsWith(matrix.build_name, 'win') && 'zip' || 'tar.gz' }}
       CARGO_BUILD_DIR: target/${{ matrix.target }}/release
 
     runs-on: ${{ matrix.os }}
@@ -98,7 +96,7 @@ jobs:
           cd desktop/packages/windows/wix
           wix build ruffle.wxs -ext WixToolset.UI.wixext -ext WixToolset.Util.wixext -arch ${{ matrix.MSI_ARCH }} -o ../../../../package/setup.msi -pdbtype none
         env:
-          RUFFLE_VERSION: ${{ needs.create-nightly-release.outputs.version4 }}
+          RUFFLE_VERSION: 0.2.0
           CARGO_BUILD_DIR: ../../../../target/${{ matrix.target }}/release
         if: runner.os == 'Windows'
 
@@ -123,14 +121,7 @@ jobs:
           cd package
           tar -czvf ../${{ env.PACKAGE_FILE }} *
 
-      - name: Upload package
-        if: runner.os != 'macOS'
-        run: gh release upload "${{ needs.create-nightly-release.outputs.tag_name }}" "${{ env.PACKAGE_FILE }}"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload macOS build artifact
-        if: runner.os == 'macOS'
+      - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.build_name }}
