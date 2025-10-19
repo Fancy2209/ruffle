@@ -18,6 +18,7 @@ jobs:
           - build_name: linux-x86_64
             os: ubuntu-24.04
             container: registry.gitlab.steamos.cloud/steamrt/sniper/sdk:latest
+            DESKTOP_FEATURES: steamworks
 
           #- build_name: linux-aarch64
           #  os: ubuntu-24.04-arm
@@ -27,26 +28,26 @@ jobs:
             os: macos-15
             target: x86_64-apple-darwin
             MACOSX_DEPLOYMENT_TARGET: 10.7
-            DESKTOP_FEATURES: sandbox,jpegxr
+            DESKTOP_FEATURES: sandbox,steamworks
 
           - build_name: macos-aarch64
             os: macos-15
             target: aarch64-apple-darwin
             MACOSX_DEPLOYMENT_TARGET: 11.0
-            DESKTOP_FEATURES: sandbox,jpegxr
+            DESKTOP_FEATURES: sandbox,steamworks
 
           - build_name: windows-x86_32
             os: windows-2025
             target: i686-pc-windows-msvc
             RUSTFLAGS: -Ctarget-feature=+crt-static
-            DESKTOP_FEATURES: jpegxr
+            DESKTOP_FEATURES: steamworks
             MSI_ARCH: x86
 
           - build_name: windows-x86_64
             os: windows-2025
             target: x86_64-pc-windows-msvc
             RUSTFLAGS: -Ctarget-feature=+crt-static
-            DESKTOP_FEATURES: jpegxr
+            DESKTOP_FEATURES: steamworks
             MSI_ARCH: x64
 
     env:
@@ -126,15 +127,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.build_name }}
-          path: |
-            ${{ env.CARGO_BUILD_DIR }}/ruffle_desktop
-            package
+          path: ${{ env.CARGO_BUILD_DIR }}/ruffle_desktop
 
       - name: Upload build artifact
         if: runner.os == 'Windows'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.build_name }}
-          path: |
-            ${{ env.CARGO_BUILD_DIR }}/ruffle_desktop.exe
-            package
+          path: ${{ env.CARGO_BUILD_DIR }}/ruffle_desktop.exe
