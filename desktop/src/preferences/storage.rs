@@ -32,10 +32,10 @@ impl StorageBackend {
 
     pub fn create_backend(
         self,
-        _opt: &LaunchOptions,
+        opt: &LaunchOptions,
     ) -> Box<dyn ruffle_core::backend::storage::StorageBackend> {
         match self {
-            StorageBackend::Disk => Box::new(DiskStorageBackend::new(std::env::current_exe().unwrap().parent().unwrap().join("Saves"))),
+            StorageBackend::Disk => Box::new(DiskStorageBackend::new(opt.save_directory.clone())),
             StorageBackend::Memory => Box::new(MemoryStorageBackend::new()),
         }
     }
