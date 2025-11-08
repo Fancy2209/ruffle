@@ -120,7 +120,22 @@ impl DesktopNavigatorInterface {
 
 impl NavigatorInterface for DesktopNavigatorInterface {
     fn navigate_to_website(&self, url: Url) {
-        open_url(&url);
+        let open_url_mode = self.preferences.open_url_mode();
+        if open_url_mode == OpenUrlMode::Deny {
+            tracing::warn!("SWF tried to open a website, but opening a website is not allowed");
+            return;
+        }
+
+        if open_url_mode == OpenUrlMode::Allow {
+            open_url(&url);
+            return;
+        }
+
+        let _ = self
+            .event_loop
+            .lock()
+            .expect("Non-poisoned event loop")
+            .send_event(RuffleEvent::OpenDialog(DialogDescriptor::OpenUrl(url)));
     }
 
     async fn open_file(&self, path: &Path) -> io::Result<File> {

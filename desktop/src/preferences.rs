@@ -309,7 +309,7 @@ impl Default for SavedGlobalPreferences {
             log: Default::default(),
             storage: Default::default(),
             theme_preference: Default::default(),
-            open_url_mode: Default::default(),
+            open_url_mode: OpenUrlMode::Allow,
             ime_enabled: None,
         }
     }
