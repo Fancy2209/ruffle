@@ -3,7 +3,7 @@ name: Release Nightly
 on:
   # Run nightly
   push:
-    branches: [MattsHiddenCats]
+    branches: [SCK2014]
 
   # Allow for manual dispatch on GitHub
   workflow_dispatch:

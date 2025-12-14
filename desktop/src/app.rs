@@ -437,7 +437,7 @@ impl App {
 impl ApplicationHandler<RuffleEvent> for App {
     fn new_events(&mut self, event_loop: &ActiveEventLoop, cause: StartCause) {
         if cause == StartCause::Init {
-            let movie_url = Some(Url::from_file_path(std::env::current_exe().unwrap().parent().unwrap().join("Matts Hidden Cats.swf")).unwrap());
+            let movie_url = Some(Url::from_file_path(std::env::current_exe().unwrap().parent().unwrap().join("SCK.swf")).unwrap());
             let icon_bytes = include_bytes!("../assets/favicon-32.rgba");
             let icon =
                 Icon::from_rgba(icon_bytes.to_vec(), 256, 256).expect("App icon should be correct");
@@ -457,7 +457,7 @@ impl ApplicationHandler<RuffleEvent> for App {
             #[cfg_attr(not(target_os = "linux"), allow(unused_mut))]
             let mut window_attributes = WindowAttributes::default()
                 .with_visible(false)
-                .with_title("Matt's Hidden Cats")
+                .with_title("Super Chibi Knight")
                 .with_window_icon(Some(icon))
                 .with_min_inner_size(min_window_size);
 
@@ -600,7 +600,7 @@ impl ApplicationHandler<RuffleEvent> for App {
             }
 
             (Some(main_window), RuffleEvent::CloseFile) => {
-                main_window.gui.window().set_title("Matt's Hidden Cats"); // Reset title since file has been closed.
+                main_window.gui.window().set_title("Super Chibi Knight"); // Reset title since file has been closed.
                 main_window.gui.close_movie(&mut main_window.player);
             }
 

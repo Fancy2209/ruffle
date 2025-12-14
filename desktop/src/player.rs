@@ -14,7 +14,7 @@ use anyhow::anyhow;
 use ruffle_core::backend::navigator::SocketMode;
 use ruffle_core::config::Letterbox;
 use ruffle_core::events::{GamepadButton, KeyCode};
-use ruffle_core::{DefaultFont, LoadBehavior, Player, PlayerBuilder, PlayerEvent};
+use ruffle_core::{DefaultFont, LoadBehavior, Player, PlayerBuilder, PlayerEvent, StageAlign, StageScaleMode};
 use ruffle_frontend_utils::backends::audio::CpalAudioBackend;
 use ruffle_frontend_utils::backends::executor::{AsyncExecutor, PollRequester};
 use ruffle_frontend_utils::backends::navigator::ExternalNavigatorBackend;
@@ -331,16 +331,16 @@ impl ActivePlayer {
                 .expect("Couldn't create ui backend"),
             )
             .with_autoplay(true)
-            .with_letterbox(Letterbox::Off)
+            .with_letterbox(Letterbox::On)
             .with_max_execution_duration(opt.player.max_execution_duration.unwrap_or(Duration::MAX))
             .with_quality(StageQuality::High16x16)
             .with_align(
-                opt.player.align.unwrap_or_default(),
-                opt.player.force_align.unwrap_or_default(),
+                StageAlign::default(),
+                true,
             )
             .with_scale_mode(
-                opt.player.scale.unwrap_or_default(),
-                opt.player.force_scale.unwrap_or_default(),
+                StageScaleMode::ShowAll,
+                true,
             )
             .with_fullscreen(opt.fullscreen)
             .with_load_behavior(opt.player.load_behavior.unwrap_or(LoadBehavior::Streaming))
@@ -352,7 +352,7 @@ impl ActivePlayer {
             .with_avm2_optimizer_enabled(opt.avm2_optimizer_enabled);
         let player = builder.build();
 
-        window.set_title("Matt's Hidden Cats");
+        window.set_title("Super Chibi Knight");
 
         SWF_INFO.with(|i| *i.borrow_mut() = Some(readable_name));
 

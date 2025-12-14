@@ -31,13 +31,13 @@ FILESUBTYPE VFT2_UNKNOWN
     {
         BLOCK "040904b0"
         {
-            VALUE "CompanyName", "Kupo Games"
-            VALUE "FileDescription", "Matt's Hidden Cats: A scavenger-hunt adventure!"
+            VALUE "CompanyName", "PestoForce"
+            VALUE "FileDescription", "Super Chibi Knight"
             VALUE "FileVersion", VER_FILEVERSION_STR
             VALUE "InternalName", "ruffle_desktop.exe"
             VALUE "LegalCopyright", "Copyright (C) 2026"
             VALUE "OriginalFilename", "ruffle_desktop.exe"
-            VALUE "ProductName", "Matt's Hidden Cats"
+            VALUE "ProductName", "Super Chibi Knight"
             VALUE "ProductVersion", VER_PRODUCTVERSION_STR
         }
     }
