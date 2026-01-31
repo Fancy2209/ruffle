@@ -297,7 +297,7 @@ impl Default for SavedGlobalPreferences {
             .unwrap_or_else(|| US_ENGLISH.clone());
 
         Self {
-            graphics_backend: GraphicsBackend::Gl,
+            graphics_backend: Default::default(),
             graphics_power_preference: Default::default(),
             gamemode_preference: Default::default(),
             language: locale,
