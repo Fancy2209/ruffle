@@ -55,7 +55,7 @@ fontconfig = { version = "0.10.0", optional = true, features = ["dlopen"]}
 memmap2.workspace = true
 
 steamworks = { version = "0.12.0", optional = true }
-is_wine = "0.1.2"
+is_wine = { path = "is_wine/" }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 ashpd = "0.11.0"

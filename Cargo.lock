@@ -2672,8 +2672,6 @@ checksum = "7943c866cc5cd64cbc25b2e01621d07fa8eb2a1a23160ee81ce38704e97b8ecf"
 [[package]]
 name = "is_wine"
 version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0a43986947d231ad715377201c3077def3bd9e55db8e959eb3ac1e46b6406cde"
 dependencies = [
  "windows 0.59.0",
 ]

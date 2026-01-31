@@ -298,7 +298,7 @@ impl Default for SavedGlobalPreferences {
             .unwrap_or_else(|| US_ENGLISH.clone());
 
         let mut preffered_backend = GraphicsBackend::default();
-        if !cfg(target_os = "windows")
+        if cfg!(target_os = "windows")
         {
             preffered_backend = GraphicsBackend::Dx12;
             if is_wine_lax()
