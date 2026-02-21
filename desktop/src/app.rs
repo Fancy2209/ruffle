@@ -195,7 +195,7 @@ impl MainWindow {
                 }
 
                 // Handle escaping from fullscreen.
-                /* Don't do this for Matt's Hidden Cats
+                /* Don't do this for Find Matt's Cats
                 if let KeyEvent {
                     state: ElementState::Pressed,
                     logical_key: Key::Named(NamedKey::Escape),
@@ -437,7 +437,7 @@ impl App {
 impl ApplicationHandler<RuffleEvent> for App {
     fn new_events(&mut self, event_loop: &ActiveEventLoop, cause: StartCause) {
         if cause == StartCause::Init {
-            let movie_url = Some(Url::from_file_path(std::env::current_exe().unwrap().parent().unwrap().join("Matts Hidden Cats.swf")).unwrap());
+            let movie_url = Some(Url::from_file_path(std::env::current_exe().unwrap().parent().unwrap().join("Find Matt's Cats.swf")).unwrap());
             let icon_bytes = include_bytes!("../assets/favicon-32.rgba");
             let icon =
                 Icon::from_rgba(icon_bytes.to_vec(), 256, 256).expect("App icon should be correct");
@@ -457,7 +457,7 @@ impl ApplicationHandler<RuffleEvent> for App {
             #[cfg_attr(not(target_os = "linux"), allow(unused_mut))]
             let mut window_attributes = WindowAttributes::default()
                 .with_visible(false)
-                .with_title("Matt's Hidden Cats")
+                .with_title("Find Matt's Cats")
                 .with_window_icon(Some(icon))
                 .with_min_inner_size(min_window_size);
 

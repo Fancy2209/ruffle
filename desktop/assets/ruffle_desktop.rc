@@ -32,12 +32,12 @@ FILESUBTYPE VFT2_UNKNOWN
         BLOCK "040904b0"
         {
             VALUE "CompanyName", "Kupo Games"
-            VALUE "FileDescription", "Matt's Hidden Cats: A scavenger-hunt adventure!"
+            VALUE "FileDescription", "Find Matt's Cats: A scavenger-hunt adventure!"
             VALUE "FileVersion", VER_FILEVERSION_STR
             VALUE "InternalName", "ruffle_desktop.exe"
             VALUE "LegalCopyright", "Copyright (C) 2026"
             VALUE "OriginalFilename", "ruffle_desktop.exe"
-            VALUE "ProductName", "Matt's Hidden Cats"
+            VALUE "ProductName", "Find Matt's Cats"
             VALUE "ProductVersion", VER_PRODUCTVERSION_STR
         }
     }
