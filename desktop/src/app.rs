@@ -189,14 +189,15 @@ impl MainWindow {
             WindowEvent::ModifiersChanged(new_modifiers) => {
                 self.modifiers = new_modifiers;
             }
-                        WindowEvent::Touch { phase, location, .. } => {
+            WindowEvent::Touch(winit::event::Touch { phase, location, .. }) => {
                 self.mouse_pos = location;
                 let (x, y) = self.gui.window_to_movie_position(location);
+                use ruffle_core::events::MouseButton as RuffleMouseButton;
                 if phase == TouchPhase::Started {
                     let event = PlayerEvent::MouseDown {
                         x,
                         y,
-                        button: MouseButton::Left,
+                        button: RuffleMouseButton::Left,
                         index: None,
                     };
                     self.player.handle_event(event);
@@ -213,7 +214,7 @@ impl MainWindow {
                     let event = PlayerEvent::MouseUp {
                             x,
                             y,
-                            button: MouseButton::Left,
+                            button: RuffleMouseButton::Left,
                         };
                     self.player.handle_event(event);
                     self.check_redraw();
