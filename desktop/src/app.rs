@@ -193,6 +193,7 @@ impl MainWindow {
                 if self.gui.is_context_menu_visible() {
                     return;
                 }
+            }
             WindowEvent::Touch { phase, location, .. } => {
                 self.mouse_pos = location;
                 let (x, y) = self.gui.window_to_movie_position(location);
