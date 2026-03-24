@@ -17,7 +17,7 @@ use std::time::Instant;
 use url::Url;
 use winit::application::ApplicationHandler;
 use winit::dpi::{LogicalSize, PhysicalPosition, PhysicalSize, Size};
-use winit::event::{ElementState, Ime, /*KeyEvent,*/ Modifiers, StartCause, WindowEvent};
+use winit::event::{ElementState, Ime, /*KeyEvent,*/ Modifiers, StartCause, WindowEvent, TouchPhase};
 use winit::event_loop::{ActiveEventLoop, ControlFlow, EventLoop, EventLoopProxy};
 //use winit::keyboard::{Key, NamedKey};
 use winit::window::{Fullscreen, Icon, WindowAttributes, WindowId};
@@ -193,6 +193,36 @@ impl MainWindow {
                 if self.gui.is_context_menu_visible() {
                     return;
                 }
+            WindowEvent::Touch { phase, location, .. } => {
+                self.mouse_pos = location;
+                let (x, y) = self.gui.window_to_movie_position(location);
+                if phase == TouchPhase::Started {
+                    let event = PlayerEvent::MouseDown {
+                        x,
+                        y,
+                        button: MouseButton::Left,
+                        index: None,
+                    };
+                    self.player.handle_event(event);
+                    self.check_redraw();
+                    
+                } 
+                else if phase == TouchPhase::Moved {
+
+                    let event = PlayerEvent::MouseMove { x, y };
+                    self.player.handle_event(event);
+                    self.check_redraw();
+                } 
+                else if phase == TouchPhase::Ended {
+                    let event = PlayerEvent::MouseUp {
+                            x,
+                            y,
+                            button: MouseButton::Left,
+                        };
+                    self.player.handle_event(event);
+                    self.check_redraw();
+                }
+            }
 
                 // Handle escaping from fullscreen.
                 /* Don't do this for Find Matt's Cats
