@@ -189,12 +189,7 @@ impl MainWindow {
             WindowEvent::ModifiersChanged(new_modifiers) => {
                 self.modifiers = new_modifiers;
             }
-            WindowEvent::KeyboardInput { event, .. } => {
-                if self.gui.is_context_menu_visible() {
-                    return;
-                }
-            }
-            WindowEvent::Touch { phase, location, .. } => {
+                        WindowEvent::Touch { phase, location, .. } => {
                 self.mouse_pos = location;
                 let (x, y) = self.gui.window_to_movie_position(location);
                 if phase == TouchPhase::Started {
@@ -224,6 +219,10 @@ impl MainWindow {
                     self.check_redraw();
                 }
             }
+            WindowEvent::KeyboardInput { event, .. } => {
+                if self.gui.is_context_menu_visible() {
+                    return;
+                }
 
                 // Handle escaping from fullscreen.
                 /* Don't do this for Find Matt's Cats
