@@ -40,7 +40,7 @@ mod platform {
     pub fn try_is_wine() -> IsWineResult<bool> {
         let module_handle = unsafe { GetModuleHandleA(NTDLL_MODULE) }.map_err(|_| IsWineError)?;
 
-        // If ntdll module could not be found we return an error. 
+        // If ntdll module could not be found we return an error.
         // NOTE: This should never happen normally but if it does we have a sane default.
         if module_handle.is_invalid() {
             return Err(IsWineError);

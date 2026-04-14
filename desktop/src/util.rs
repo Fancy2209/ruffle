@@ -1,8 +1,8 @@
 use anyhow::{anyhow, Error};
 //use gilrs::Button;
 use ruffle_core::events::{
-    /*GamepadButton, */KeyDescriptor, KeyLocation, LogicalKey, NamedKey as RuffleNamedKey, PhysicalKey,
-    TextControlCode,
+    /*GamepadButton, */ KeyDescriptor, KeyLocation, LogicalKey, NamedKey as RuffleNamedKey,
+    PhysicalKey, TextControlCode,
 };
 use std::path::Path;
 use url::Url;

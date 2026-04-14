@@ -17,7 +17,9 @@ impl FsCommandProvider for DesktopFSCommandProvider {
                 let mut parts = args.split('x');
                 let width = parts.next().unwrap().parse::<u32>().unwrap();
                 let height = parts.next().unwrap().parse::<u32>().unwrap();
-                let _ = self.event_loop.send_event(RuffleEvent::Resize(width, height));
+                let _ = self
+                    .event_loop
+                    .send_event(RuffleEvent::Resize(width, height));
             }
             "fullscreen" => {
                 match args {

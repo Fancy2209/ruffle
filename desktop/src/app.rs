@@ -3,7 +3,7 @@ use crate::gui::{GuiController, MENU_HEIGHT};
 use crate::player::{LaunchOptions, PlayerController};
 use crate::preferences::GlobalPreferences;
 use crate::util::{
-    get_screen_size, /*gilrs_button_to_gamepad_button, */parse_url, plot_stats_in_tracy,
+    get_screen_size, /*gilrs_button_to_gamepad_button, */ parse_url, plot_stats_in_tracy,
     winit_input_to_ruffle_key_descriptor, winit_to_ruffle_text_control,
 };
 use anyhow::Error;
@@ -17,7 +17,9 @@ use std::time::Instant;
 use url::Url;
 use winit::application::ApplicationHandler;
 use winit::dpi::{LogicalSize, PhysicalPosition, PhysicalSize, Size};
-use winit::event::{ElementState, Ime, /*KeyEvent,*/ Modifiers, StartCause, WindowEvent, TouchPhase};
+use winit::event::{
+    ElementState, Ime, /*KeyEvent,*/ Modifiers, StartCause, TouchPhase, WindowEvent,
+};
 use winit::event_loop::{ActiveEventLoop, ControlFlow, EventLoop, EventLoopProxy};
 //use winit::keyboard::{Key, NamedKey};
 use winit::window::{Fullscreen, Icon, WindowAttributes, WindowId};
@@ -189,7 +191,9 @@ impl MainWindow {
             WindowEvent::ModifiersChanged(new_modifiers) => {
                 self.modifiers = new_modifiers;
             }
-            WindowEvent::Touch(winit::event::Touch { phase, location, .. }) => {
+            WindowEvent::Touch(winit::event::Touch {
+                phase, location, ..
+            }) => {
                 self.mouse_pos = location;
                 let (x, y) = self.gui.window_to_movie_position(location);
                 use ruffle_core::events::MouseButton as RuffleMouseButton;
@@ -202,20 +206,16 @@ impl MainWindow {
                     };
                     self.player.handle_event(event);
                     self.check_redraw();
-                    
-                } 
-                else if phase == TouchPhase::Moved {
-
+                } else if phase == TouchPhase::Moved {
                     let event = PlayerEvent::MouseMove { x, y };
                     self.player.handle_event(event);
                     self.check_redraw();
-                } 
-                else if phase == TouchPhase::Ended {
+                } else if phase == TouchPhase::Ended {
                     let event = PlayerEvent::MouseUp {
-                            x,
-                            y,
-                            button: RuffleMouseButton::Left,
-                        };
+                        x,
+                        y,
+                        button: RuffleMouseButton::Left,
+                    };
                     self.player.handle_event(event);
                     self.check_redraw();
                 }
@@ -373,7 +373,7 @@ impl MainWindow {
         }
     }
 
-    fn about_to_wait(&mut self/*, gilrs: Option<&mut Gilrs> */) {
+    fn about_to_wait(&mut self /*, gilrs: Option<&mut Gilrs> */) {
         /*if let Some(Event { event, .. }) = gilrs.and_then(|gilrs| gilrs.next_event()) {
             match event {
                 EventType::ButtonPressed(button, _) => {
@@ -468,10 +468,19 @@ impl App {
 impl ApplicationHandler<RuffleEvent> for App {
     fn new_events(&mut self, event_loop: &ActiveEventLoop, cause: StartCause) {
         if cause == StartCause::Init {
-            let movie_url = Some(Url::from_file_path(std::env::current_exe().unwrap().parent().unwrap().join("Find Matt's Cats.swf")).unwrap());
+            let movie_url = Some(
+                Url::from_file_path(
+                    std::env::current_exe()
+                        .unwrap()
+                        .parent()
+                        .unwrap()
+                        .join("FAST FOOD FUNKIN'.swf"),
+                )
+                .unwrap(),
+            );
             let icon_bytes = include_bytes!("../assets/favicon-32.rgba");
             let icon =
-                Icon::from_rgba(icon_bytes.to_vec(), 256, 256).expect("App icon should be correct");
+                Icon::from_rgba(icon_bytes.to_vec(), 32, 32).expect("App icon should be correct");
 
             self.preferences.cli.no_gui = true;
             let no_gui = self.preferences.cli.no_gui;
@@ -488,22 +497,22 @@ impl ApplicationHandler<RuffleEvent> for App {
             #[cfg_attr(not(target_os = "linux"), allow(unused_mut))]
             let mut window_attributes = WindowAttributes::default()
                 .with_visible(false)
-                .with_title("Find Matt's Cats")
+                .with_title("FAST FOOD FUNKIN'")
                 .with_window_icon(Some(icon))
                 .with_min_inner_size(min_window_size);
 
-           #[cfg(target_os = "linux")]
-           {
-               use winit::platform::startup_notify::{
-                   self, EventLoopExtStartupNotify, WindowAttributesExtStartupNotify,
-               };
-               use winit::platform::wayland::WindowAttributesExtWayland;
-               window_attributes = window_attributes.with_name("rs.ruffle.Ruffle", "main");
-               if let Some(token) = event_loop.read_token_from_env() {
-                   startup_notify::reset_activation_token_env();
-                   window_attributes = window_attributes.with_activation_token(token);
-               }
-           }
+            #[cfg(target_os = "linux")]
+            {
+                use winit::platform::startup_notify::{
+                    self, EventLoopExtStartupNotify, WindowAttributesExtStartupNotify,
+                };
+                use winit::platform::wayland::WindowAttributesExtWayland;
+                window_attributes = window_attributes.with_name("rs.ruffle.Ruffle", "main");
+                if let Some(token) = event_loop.read_token_from_env() {
+                    startup_notify::reset_activation_token_env();
+                    window_attributes = window_attributes.with_activation_token(token);
+                }
+            }
 
             let event_loop_proxy = self.event_loop_proxy.clone();
             let preferences = self.preferences.clone();
@@ -612,7 +621,7 @@ impl ApplicationHandler<RuffleEvent> for App {
 
             (Some(main_window), RuffleEvent::Resize(width, height)) => {
                 if let Some(mut player) = main_window.player.get() {
-                    let width  =  width.max(1) as f64 * main_window.gui.window().scale_factor();
+                    let width = width.max(1) as f64 * main_window.gui.window().scale_factor();
                     let height = height.max(1) as f64 * main_window.gui.window().scale_factor();
                     player.set_viewport_dimensions(ViewportDimensions {
                         width: width as u32,
@@ -620,8 +629,14 @@ impl ApplicationHandler<RuffleEvent> for App {
                         scale_factor: main_window.gui.window().scale_factor(),
                     });
                     let inner_size = PhysicalSize::new(width as f64, height as f64);
-                    main_window.gui.window().set_min_inner_size(Some(inner_size));
-                    main_window.gui.window().set_max_inner_size(Some(inner_size));
+                    main_window
+                        .gui
+                        .window()
+                        .set_min_inner_size(Some(inner_size));
+                    main_window
+                        .gui
+                        .window()
+                        .set_max_inner_size(Some(inner_size));
                     let _ = main_window.gui.window().request_inner_size(inner_size);
                 }
             }
