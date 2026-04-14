@@ -1,7 +1,11 @@
-package steamworks {
+package ruffle.steamworks {
     import flash.events.Event;
     import flash.events.EventDispatcher;
     import flash.external.ExternalInterface;
+
+    import ruffle.steamworks.Achievement;
+    import ruffle.steamworks.LocalPlayer;
+    import ruffle.steamworks.Utils;
 
     public class Client extends EventDispatcher {
         public static var USER_STATS_RECEIVED: String = "userStatsReceived";

@@ -1,4 +1,6 @@
-package steamworks {
+package ruffle.steamworks {
+    import ruffle.steamworks.Client;
+
     public class Achievement {
         private var _client: Client;
         public function Achievement(client: Client) {

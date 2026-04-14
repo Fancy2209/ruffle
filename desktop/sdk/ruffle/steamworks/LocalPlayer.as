@@ -1,4 +1,6 @@
-package steamworks {
+package ruffle.steamworks {
+    import ruffle.steamworks.Client;
+
     public class LocalPlayer {
         private var _client: Client;
         public function LocalPlayer(client: Client) {

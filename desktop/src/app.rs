@@ -519,7 +519,7 @@ impl ApplicationHandler<RuffleEvent> for App {
             let window = event_loop
                 .create_window(window_attributes)
                 .expect("Window should be created");
-            window.set_resizable(false);
+            window.set_resizable(true);
             let max_window_size = get_screen_size(&window);
             window.set_max_inner_size(Some(max_window_size));
             let window = Arc::new(window);
@@ -569,8 +569,8 @@ impl ApplicationHandler<RuffleEvent> for App {
                 min_window_size,
                 max_window_size,
                 no_gui,
-                preferred_width,
-                preferred_height,
+                preferred_width: Some(480.0),
+                preferred_height: Some(720.0),
                 start_fullscreen,
                 loaded,
                 minimized: false,

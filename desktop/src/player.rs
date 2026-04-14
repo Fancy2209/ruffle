@@ -331,7 +331,7 @@ impl ActivePlayer {
                 .expect("Couldn't create ui backend"),
             )
             .with_autoplay(true)
-            .with_letterbox(Letterbox::Off)
+            .with_letterbox(Letterbox::On)
             .with_max_execution_duration(opt.player.max_execution_duration.unwrap_or(Duration::MAX))
             .with_quality(StageQuality::High16x16)
             .with_align(
