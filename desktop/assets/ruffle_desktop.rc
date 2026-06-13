@@ -31,7 +31,7 @@ FILESUBTYPE VFT2_UNKNOWN
     {
         BLOCK "040904b0"
         {
-            VALUE "CompanyName", "BrandyBuizel"
+            VALUE "CompanyName", "milktoast stuff"
             VALUE "FileDescription", "FAST FOOD FUNKIN'"
             VALUE "FileVersion", VER_FILEVERSION_STR
             VALUE "InternalName", "ruffle_desktop.exe"

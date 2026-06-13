@@ -26,3 +26,5 @@ Add `-pdbtype none` to disable generation of the `.wixpdb` if you wish.
 Add `-o foo.msi` to control where the MSI is placed.
 
 [@fancy2209](https://github.com/fancy2209/)'s epic build code: `cargo build --release --features steamworks`
+
+Inject desktop flash metadata here: [./desktop/assets/ruffle_desktop.rc](../../../assets/ruffle_desktop.rc)
