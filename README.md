@@ -176,3 +176,4 @@ for inclusion in the work by you shall be dual licensed as above, without any
 additional terms or conditions.
 
 The entire Ruffle community, including the chat room and GitHub project, is expected to abide by the [Code of Conduct](https://www.rust-lang.org/policies/code-of-conduct) that the Rust project itself follows.
+
