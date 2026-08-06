@@ -1,12 +1,9 @@
 name: Release Nightly
 
 on:
-  # Run nightly
+  workflow_dispatch:
   push:
     branches: [MattsHiddenCats]
-
-  # Allow for manual dispatch on GitHub
-  workflow_dispatch:
 
 jobs:
   build:
