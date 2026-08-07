@@ -17,10 +17,10 @@ jobs:
             container: registry.gitlab.steamos.cloud/steamrt/sniper/sdk:latest
             DESKTOP_FEATURES: steamworks
 
-          - build_name: linux-aarch64
-            os: ubuntu-24.04-arm
-            container: registry.gitlab.steamos.cloud/steamrt/sniper/sdk:latest
-            DESKTOP_FEATURES: steamworks
+          #- build_name: linux-aarch64
+          #  os: ubuntu-24.04-arm
+          #  container: registry.gitlab.steamos.cloud/steamrt/sniper/sdk:latest
+          #  DESKTOP_FEATURES: steamworks
 
           - build_name: macos-x86_64
             os: macos-15
