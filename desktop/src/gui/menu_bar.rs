@@ -75,13 +75,7 @@ impl MenuBar {
             }
         }
 
-        let mut fullscreen_pressed =
-            egui_ctx.input_mut(|input| input.consume_shortcut(&Self::SHORTCUT_FULLSCREEN));
-        if cfg!(windows) && !fullscreen_pressed {
-            // TODO We can remove this shortcut when we add some kind of preferences.
-            fullscreen_pressed = egui_ctx
-                .input_mut(|input| input.consume_shortcut(&Self::SHORTCUT_FULLSCREEN_WINDOWS));
-        }
+        let mut fullscreen_pressed = false;
         if fullscreen_pressed {
             if let Some(player) = &mut player {
                 let is_fullscreen = player.is_fullscreen();
