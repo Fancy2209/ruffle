@@ -78,9 +78,7 @@ impl MainWindow {
                 if let Some(mut player) = self.player.get() {
                     #[cfg(feature = "steamworks")]
                     player.mutate_with_update_context(|ctx| {
-                        if let Some(provider) = ctx.external_interface.get_provider() {
-                            provider.update(ctx);
-                        }
+                        ruffle_core::external::ExternalInterface::update(ctx)
                     });
 
                     let viewport_scale_factor = self.gui.window().scale_factor();
