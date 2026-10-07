@@ -546,6 +546,8 @@ impl Player {
     }
 
     pub fn tick(&mut self, dt: FloatDuration) {
+        self.mutate_with_update_context(|context| ExternalInterface::update(context));
+
         if !self.is_playing() {
             return;
         }

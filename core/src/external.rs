@@ -359,6 +359,8 @@ pub trait ExternalInterfaceProvider {
     fn on_callback_available(&self, name: &str);
 
     fn get_id(&self) -> Option<String>;
+
+    fn update(&self, _context: &mut UpdateContext<'_>) {}
 }
 
 pub struct NullExternalInterfaceProvider;
@@ -410,6 +412,13 @@ impl<'gc> ExternalInterface<'gc> {
             provider.call_method(context, name, args)
         } else {
             Value::Undefined
+        }
+    }
+
+    pub fn update(context: &mut UpdateContext<'gc>) {
+        let provider = context.external_interface.provider.clone();
+        if let Some(provider) = provider {
+            provider.update(context);
         }
     }
 
