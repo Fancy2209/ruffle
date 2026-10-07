@@ -12,3 +12,4 @@ pub use navigator::PathAllowList;
 #[cfg(feature = "steamworks")]
 pub use steamworks_external_interface::SteamWorksExternalInterfaceProvider;
 pub use ui::DesktopUiBackend;
+pub use ui::DeviceFontRenderer;

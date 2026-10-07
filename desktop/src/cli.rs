@@ -2,6 +2,8 @@ use crate::RUFFLE_VERSION;
 use crate::preferences::storage::StorageBackend;
 use anyhow::{Error, anyhow};
 use clap::{Parser, ValueEnum};
+#[cfg(feature = "shell-completions")]
+use clap_complete::Shell;
 use ruffle_core::backend::navigator::SocketMode;
 use ruffle_core::config::Letterbox;
 use ruffle_core::events::{GamepadButton, KeyCode};
@@ -14,27 +16,22 @@ use std::time::Duration;
 use url::Url;
 
 fn get_default_save_directory() -> std::path::PathBuf {
-    std::env::current_exe()
-        .unwrap()
-        .parent()
+    dirs::data_local_dir()
         .expect("Couldn't find a valid data_local dir")
-        .join("Saves")
+        .join("ruffle")
+        .join("SharedObjects")
 }
 
 fn get_default_config_directory() -> std::path::PathBuf {
-    std::env::current_exe()
-        .unwrap()
-        .parent()
+    dirs::config_local_dir()
         .expect("Couldn't find a valid config_local dir")
-        .join("Config")
+        .join("ruffle")
 }
 
 fn get_default_cache_directory() -> std::path::PathBuf {
-    std::env::current_exe()
-        .unwrap()
-        .parent()
+    dirs::cache_dir()
         .expect("Couldn't find a valid cache dir")
-        .join("Cache")
+        .join("ruffle")
 }
 
 #[derive(Parser, Debug, Clone)]
@@ -42,8 +39,14 @@ fn get_default_cache_directory() -> std::path::PathBuf {
     name = "Ruffle",
     author,
     version = RUFFLE_VERSION,
+    subcommand_negates_reqs = true
 )]
 pub struct Opt {
+    /// Generate shell completions for the specified shell
+    #[cfg(feature = "shell-completions")]
+    #[arg(long = "completions", value_enum)]
+    pub completions: Option<Shell>,
+
     /// Path or URL of a Flash movie (SWF) to play.
     #[clap(name = "FILE", value_parser(parse_movie_file_or_url))]
     pub movie_url: Option<Url>,
