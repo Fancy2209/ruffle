@@ -24,8 +24,8 @@ pub struct MenuBar {
 
 impl MenuBar {
     const SHORTCUT_FULLSCREEN: KeyboardShortcut = KeyboardShortcut::new(Modifiers::NONE, Key::F11);
-    const SHORTCUT_FULLSCREEN_WINDOWS: KeyboardShortcut =
-        KeyboardShortcut::new(Modifiers::ALT, Key::Enter);
+    //const SHORTCUT_FULLSCREEN_WINDOWS: KeyboardShortcut =
+        //KeyboardShortcut::new(Modifiers::ALT, Key::Enter);
     const SHORTCUT_OPEN: KeyboardShortcut = KeyboardShortcut::new(Modifiers::COMMAND, Key::O);
     const SHORTCUT_OPEN_ADVANCED: KeyboardShortcut =
         KeyboardShortcut::new(Modifiers::COMMAND.plus(Modifiers::SHIFT), Key::O);
@@ -75,7 +75,7 @@ impl MenuBar {
             }
         }
 
-        let mut fullscreen_pressed =
+        /*let mut fullscreen_pressed =
             egui_ctx.input_mut(|input| input.consume_shortcut(&Self::SHORTCUT_FULLSCREEN));
         if cfg!(windows) && !fullscreen_pressed {
             // TODO We can remove this shortcut when we add some kind of preferences.
@@ -87,7 +87,7 @@ impl MenuBar {
         {
             let is_fullscreen = player.is_fullscreen();
             player.set_fullscreen(!is_fullscreen);
-        }
+        }*/
     }
 
     pub fn show(
@@ -182,7 +182,7 @@ impl MenuBar {
                         self.launch_website(ui, "https://discord.gg/ruffle");
                     }
                     if ui.button(text(locale, "help-menu-report-a-bug")).clicked() {
-                        self.launch_website(ui, "https://github.com/ruffle-rs/ruffle/issues/new?assignees=&labels=bug&projects=&template=bug_report.yml");
+                        self.launch_website(ui, "https://github.com/Fancy2209/ruffle/issues/new?assignees=Fancy2209&labels=bug&projects=&template=bug_report.yml");
                     }
                     if ui.button(text(locale, "help-menu-sponsor-development")).clicked() {
                         self.launch_website(ui, "https://opencollective.com/ruffle/");

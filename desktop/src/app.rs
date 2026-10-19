@@ -3,11 +3,10 @@ use crate::gui::{GuiController, MENU_HEIGHT};
 use crate::player::{LaunchOptions, PlayerController};
 use crate::preferences::GlobalPreferences;
 use crate::util::{
-    get_screen_size, gilrs_button_to_gamepad_button, winit_input_to_ruffle_key_descriptor,
+    get_screen_size, winit_input_to_ruffle_key_descriptor,
     winit_to_ruffle_text_control,
 };
 use anyhow::Error;
-use gilrs::{Event, EventType, Gilrs};
 use ruffle_core::FloatDuration;
 use ruffle_core::PlayerEvent;
 use ruffle_core::events::{ImeEvent, ImeNotification, PlayerNotification};
@@ -18,10 +17,10 @@ use std::sync::Arc;
 use std::time::Instant;
 use winit::application::ApplicationHandler;
 use winit::dpi::{LogicalSize, PhysicalPosition, PhysicalSize, Size};
-use winit::event::{ElementState, Ime, KeyEvent, Modifiers, StartCause, WindowEvent};
+use winit::event::{ElementState, Ime, Modifiers, StartCause, TouchPhase, WindowEvent};
 use winit::event_loop::{ActiveEventLoop, ControlFlow, EventLoop, EventLoopProxy};
-use winit::keyboard::{Key, NamedKey};
 use winit::window::{Fullscreen, Icon, WindowAttributes, WindowId};
+use url::Url;
 
 struct MainWindow {
     preferences: GlobalPreferences,
@@ -83,6 +82,12 @@ impl MainWindow {
                 self.minimized = size.width == 0 && size.height == 0;
 
                 if let Some(mut player) = self.player.get() {
+                    #[cfg(feature = "steamworks")]
+                    player.mutate_with_update_context(|ctx| {
+                        if let Some(provider) = ctx.external_interface.get_provider() {
+                            provider.update(ctx);
+                        }
+                    });
                     let viewport_scale_factor = self.gui.window().scale_factor();
                     player.set_viewport_dimensions(ViewportDimensions {
                         width: size.width,
@@ -212,13 +217,43 @@ impl MainWindow {
             WindowEvent::ModifiersChanged(new_modifiers) => {
                 self.modifiers = new_modifiers;
             }
+            WindowEvent::Touch(winit::event::Touch {
+                phase, location, ..
+            }) => {
+                self.mouse_pos = location;
+                let (x, y) = self.gui.window_to_movie_position(location);
+                use ruffle_core::events::MouseButton as RuffleMouseButton;
+                if phase == TouchPhase::Started {
+                    let event = PlayerEvent::MouseDown {
+                        x,
+                        y,
+                        button: RuffleMouseButton::Left,
+                        index: None,
+                    };
+                    self.player.handle_event(event);
+                    self.check_redraw();
+                } else if phase == TouchPhase::Moved {
+                    let event = PlayerEvent::MouseMove { x, y };
+                    self.player.handle_event(event);
+                    self.check_redraw();
+                } else if phase == TouchPhase::Ended {
+                    let event = PlayerEvent::MouseUp {
+                        x,
+                        y,
+                        button: RuffleMouseButton::Left,
+                    };
+                    self.player.handle_event(event);
+                    self.check_redraw();
+                }
+            }
             WindowEvent::KeyboardInput { event, .. } => {
                 if self.gui.is_context_menu_visible() {
                     return;
                 }
 
+                // change(FMC): Disabled to let the game control this
                 // Handle escaping from fullscreen.
-                if let KeyEvent {
+                /*if let KeyEvent {
                     state: ElementState::Pressed,
                     logical_key: Key::Named(NamedKey::Escape),
                     ..
@@ -227,7 +262,7 @@ impl MainWindow {
                     let _ = self
                         .event_loop_proxy
                         .send_event(RuffleEvent::ExitFullScreen);
-                }
+                }*/
 
                 let key = winit_input_to_ruffle_key_descriptor(&event);
                 match event.state {
@@ -363,27 +398,7 @@ impl MainWindow {
         }
     }
 
-    fn about_to_wait(&mut self, gilrs: Option<&mut Gilrs>) {
-        if let Some(Event { event, .. }) = gilrs.and_then(|gilrs| gilrs.next_event()) {
-            match event {
-                EventType::ButtonPressed(button, _) => {
-                    if let Some(button) = gilrs_button_to_gamepad_button(button) {
-                        self.player
-                            .handle_event(PlayerEvent::GamepadButtonDown { button });
-                        self.check_redraw();
-                    }
-                }
-                EventType::ButtonReleased(button, _) => {
-                    if let Some(button) = gilrs_button_to_gamepad_button(button) {
-                        self.player
-                            .handle_event(PlayerEvent::GamepadButtonUp { button });
-                        self.check_redraw();
-                    }
-                }
-                _ => {}
-            }
-        }
-
+    fn about_to_wait(&mut self) {
         // Core loop
         // [NA] This used to be called `MainEventsCleared`, but I think the behaviour is different now.
         // We should look at changing our tick to happen somewhere else if we see any behavioural problems.
@@ -412,7 +427,6 @@ impl MainWindow {
 pub struct App {
     main_window: Option<MainWindow>,
     runtime: Option<tokio::runtime::Runtime>,
-    gilrs: Option<Gilrs>,
     event_loop_proxy: EventLoopProxy<RuffleEvent>,
     preferences: GlobalPreferences,
     font_database: fontdb::Database,
@@ -433,11 +447,6 @@ impl App {
         let mut font_database = fontdb::Database::default();
         font_database.load_system_fonts();
 
-        let gilrs = Gilrs::new()
-            .inspect_err(|err| {
-                tracing::warn!("Gamepad support could not be initialized: {err}");
-            })
-            .ok();
         let event_loop_proxy = event_loop.create_proxy();
         let runtime = tokio::runtime::Runtime::new()?;
 
@@ -445,7 +454,6 @@ impl App {
             Self {
                 main_window: None,
                 runtime: Some(runtime),
-                gilrs,
                 event_loop_proxy,
                 font_database,
                 preferences,
@@ -460,30 +468,36 @@ impl ApplicationHandler<RuffleEvent> for App {
         enter_runtime!(self);
 
         if cause == StartCause::Init {
-            let movie_url = self.preferences.cli.movie_url.clone();
+            let movie_url = Some(
+                Url::from_file_path(
+                    std::env::current_exe()
+                        .unwrap()
+                        .parent()
+                        .unwrap()
+                        .join("Find Matt's Cats.swf"),
+                )
+                .unwrap(),
+            );
             let icon_bytes = include_bytes!("../assets/favicon-32.rgba");
             let icon =
                 Icon::from_rgba(icon_bytes.to_vec(), 32, 32).expect("App icon should be correct");
 
-            let no_gui = self.preferences.cli.no_gui;
-            let min_window_size = if no_gui {
-                (16, 16)
-            } else {
-                (350, MENU_HEIGHT + 16)
-            }
-            .into();
+            let no_gui = true;//self.preferences.cli.no_gui;
+            let min_window_size:LogicalSize<u32> = LogicalSize::new(960, 540).into();
             let preferred_width = self.preferences.cli.width;
             let preferred_height = self.preferences.cli.height;
             let start_fullscreen = self.preferences.cli.fullscreen;
 
             #[cfg_attr(not(target_os = "linux"), allow(unused_mut))]
-            let mut window_attributes = WindowAttributes::default()
+            let window_attributes = WindowAttributes::default()
                 .with_visible(false)
-                .with_title("Ruffle")
+                .with_title("Find Matt's Cats")
                 .with_window_icon(Some(icon))
-                .with_min_inner_size(min_window_size);
+                .with_resizable(true)
+                .with_min_inner_size(min_window_size)
+                .with_max_inner_size(min_window_size);
 
-            #[cfg(target_os = "linux")]
+            /*#[cfg(target_os = "linux")]
             {
                 use winit::platform::startup_notify::{
                     self, EventLoopExtStartupNotify, WindowAttributesExtStartupNotify,
@@ -494,7 +508,7 @@ impl ApplicationHandler<RuffleEvent> for App {
                     startup_notify::reset_activation_token_env();
                     window_attributes = window_attributes.with_activation_token(token);
                 }
-            }
+            }*/
 
             let event_loop_proxy = self.event_loop_proxy.clone();
             let preferences = self.preferences.clone();
@@ -614,12 +628,34 @@ impl ApplicationHandler<RuffleEvent> for App {
                     .create_movie(&mut main_window.player, *options, desc);
             }
 
+            (Some(main_window), RuffleEvent::Resize(width, height)) => {
+                if let Some(mut player) = main_window.player.get() {
+                    let width = width.max(1) as f64 * main_window.gui.window().scale_factor();
+                    let height = height.max(1) as f64 * main_window.gui.window().scale_factor();
+                    player.set_viewport_dimensions(ViewportDimensions {
+                        width: width as u32,
+                        height: height as u32,
+                        scale_factor: main_window.gui.window().scale_factor(),
+                    });
+                    let inner_size = PhysicalSize::new(width as f64, height as f64);
+                    main_window
+                        .gui
+                        .window()
+                        .set_min_inner_size(Some(inner_size));
+                    main_window
+                        .gui
+                        .window()
+                        .set_max_inner_size(Some(inner_size));
+                    let _ = main_window.gui.window().request_inner_size(inner_size);
+                }
+            }
+
             (Some(main_window), RuffleEvent::OpenDialog(descriptor)) => {
                 main_window.gui.open_dialog(descriptor);
             }
 
             (Some(main_window), RuffleEvent::CloseFile) => {
-                main_window.gui.window().set_title("Ruffle"); // Reset title since file has been closed.
+                main_window.gui.window().set_title("Find Matt's Cats"); // Reset title since file has been closed.
                 main_window.gui.close_movie(&mut main_window.player);
             }
 
@@ -695,7 +731,7 @@ impl ApplicationHandler<RuffleEvent> for App {
         enter_runtime!(self);
 
         if let Some(main_window) = &mut self.main_window {
-            main_window.about_to_wait(self.gilrs.as_mut());
+            main_window.about_to_wait();
 
             // The event loop is finished; let's find out how long we need to wait for.
             // We don't need to worry about earlier update requests, as it's the

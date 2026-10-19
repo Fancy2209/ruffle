@@ -137,10 +137,11 @@ pub fn get_local<'gc>(
     // Avoid any paths with `..` to prevent SWFs from crawling the file system on desktop.
     // Flash will generally fail to save shared objects with a path component starting with `.`,
     // so let's disallow them altogether.
-    if full_name.split('/').any(|s| s.starts_with('.')) {
-        tracing::error!("SharedObject.get_local: Invalid path with .. segments");
-        return Ok(Value::Null);
-    }
+    // change(FMC): This was causing the game not to save on proton, disabled for now
+    // if full_name.split('/').any(|s| s.starts_with('.')) {
+    //     tracing::error!("SharedObject.get_local: Invalid path with .. segments");
+    //     return Ok(Value::Null);
+    // }
 
     // Check if this is referencing an existing shared object
     if let Some(so) = activation.context.avm2_shared_objects.get(&full_name) {
