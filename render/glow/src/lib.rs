@@ -165,7 +165,7 @@ fn as_registry_data(handle: &BitmapHandle) -> &RegistryData {
     <dyn Any>::downcast_ref(&*handle.0).expect("Bitmap handle must be webgl RegistryData")
 }
 
-const MAX_GRADIENT_COLORS: usize = 15;
+const GRADIENT_SIZE: usize = 256;
 
 impl GlowRenderBackend {
     pub fn new(
@@ -211,7 +211,6 @@ impl GlowRenderBackend {
             let bitmap_program = ShaderProgram::new(&gl, texture_vertex, bitmap_fragment)?;
             let gradient_program = ShaderProgram::new(&gl, texture_vertex, gradient_fragment)?;
 
-            gl.enable(glow::BLEND);
 
             // Necessary to load RGB textures (alignment defaults to 4).
             gl.pixel_store_i32(glow::UNPACK_ALIGNMENT, 1);
@@ -740,6 +739,10 @@ impl GlowRenderBackend {
                 RenderBlendMode::Builtin(BlendMode::Add) => {
                     // src + dst
                     (glow::FUNC_ADD, glow::ONE, glow::ONE)
+                }
+                RenderBlendMode::Builtin(BlendMode::Screen) => {
+                    // src + dst
+                    (glow::FUNC_ADD, glow::ONE, glow::ONE_MINUS_SRC_COLOR)
                 }
                 RenderBlendMode::Builtin(BlendMode::Subtract) => {
                     // dst - src
@@ -1459,16 +1462,47 @@ impl CommandHandler for GlowRenderBackend {
                             ShaderUniform::GradientType,
                             gradient.gradient_type,
                         );
-                        program.uniform1fv(
-                            &self.gl,
-                            ShaderUniform::GradientRatios,
-                            &gradient.ratios,
+                        // Bind texture.
+                        let texture = self
+                            .gl
+                            .create_texture()
+                            .map_err(|_| BitmapError::UnableToCreateTexture).unwrap();
+                        self.gl.bind_texture(glow::TEXTURE_2D, Some(texture));
+
+                        // You must set the texture parameters for non-power-of-2 textures to function in WebGL1.
+                        self.gl.tex_parameter_i32(
+                            glow::TEXTURE_2D,
+                            glow::TEXTURE_WRAP_S,
+                            glow::CLAMP_TO_EDGE as i32,
                         );
-                        program.uniform4fv(
-                            &self.gl,
-                            ShaderUniform::GradientColors,
-                            bytemuck::cast_slice(&gradient.colors),
+                        self.gl.tex_parameter_i32(
+                            glow::TEXTURE_2D,
+                            glow::TEXTURE_WRAP_T,
+                            glow::CLAMP_TO_EDGE as i32,
                         );
+                        self.gl.tex_parameter_i32(
+                            glow::TEXTURE_2D,
+                            glow::TEXTURE_MIN_FILTER,
+                            glow::LINEAR as i32,
+                        );
+                        self.gl.tex_parameter_i32(
+                            glow::TEXTURE_2D,
+                            glow::TEXTURE_MAG_FILTER,
+                            glow::LINEAR as i32,
+                        );
+                        self.gl.bind_texture(glow::TEXTURE_2D, Some(texture));
+                        self.gl.tex_image_2d(
+                            glow::TEXTURE_2D,
+                            0,
+                            glow::RGBA as i32,
+                            GRADIENT_SIZE.try_into().unwrap(),
+                            1,
+                            0,
+                            glow::RGBA,
+                            glow::UNSIGNED_BYTE,
+                            glow::PixelUnpackData::Slice(Some(&gradient.colors)),
+                        );
+                        program.uniform1i(&self.gl, ShaderUniform::BitmapTexture, 0);
                         program.uniform1i(
                             &self.gl,
                             ShaderUniform::GradientRepeatMode,
@@ -1610,8 +1644,7 @@ impl CommandHandler for GlowRenderBackend {
 struct Gradient {
     matrix: [[f32; 3]; 3],
     gradient_type: i32,
-    ratios: [f32; MAX_GRADIENT_COLORS],
-    colors: [[f32; 4]; MAX_GRADIENT_COLORS],
+    colors: [u8; GRADIENT_SIZE * 4],
     repeat_mode: i32,
     focal_point: f32,
     interpolation: swf::GradientInterpolation,
@@ -1619,32 +1652,67 @@ struct Gradient {
 
 impl Gradient {
     fn new(gradient: TessGradient, matrix: [[f32; 3]; 3]) -> Self {
-        // TODO: Support more than MAX_GRADIENT_COLORS.
-        let num_colors = gradient.records.len().min(MAX_GRADIENT_COLORS);
-        let mut ratios = [0.0; MAX_GRADIENT_COLORS];
-        let mut colors = [[0.0; 4]; MAX_GRADIENT_COLORS];
-        for i in 0..num_colors {
-            let record = &gradient.records[i];
-            let mut color = [
-                f32::from(record.color.r) / 255.0,
-                f32::from(record.color.g) / 255.0,
-                f32::from(record.color.b) / 255.0,
-                f32::from(record.color.a) / 255.0,
-            ];
-            // Convert to linear color space if this is a linear-interpolated gradient.
-            match gradient.interpolation {
-                swf::GradientInterpolation::Rgb => {}
-                swf::GradientInterpolation::LinearRgb => srgb_to_linear(&mut color),
+        let colors = if gradient.records.is_empty() {
+            [0; GRADIENT_SIZE * 4]
+        } else {
+            let mut colors = [0; GRADIENT_SIZE * 4];
+            let mut last = 0;
+            let mut next;
+
+            let convert = if gradient.interpolation == swf::GradientInterpolation::LinearRgb {
+                |c| srgb_to_linear(c / 255.0) * 255.0
+            } else {
+                |c| c
+            };
+
+            for t in 0..GRADIENT_SIZE {
+                if last + 1 < gradient.records.len()
+                    && t > gradient.records[last + 1].ratio as usize
+                {
+                    last += 1;
+                }
+                next = (last + 1).min(gradient.records.len() - 1);
+
+                assert!(last == next || last + 1 == next);
+
+                let last_record = &gradient.records[last];
+                let next_record = &gradient.records[next];
+
+                let a = if t <= last_record.ratio as usize || last_record.ratio == next_record.ratio
+                {
+                    // We are before the first gradient record,
+                    // or this record's ratio is equal to the next one,
+                    // meaning we need to do a full stop of this color for 1 pixel.
+                    0.0
+                } else if t > next_record.ratio as usize {
+                    // We are after the last record
+                    1.0
+                } else {
+                    (t as f32 - last_record.ratio as f32)
+                        / (next_record.ratio as f32 - last_record.ratio as f32)
+                };
+
+                colors[t * 4] = lerp(
+                    convert(last_record.color.r as f32),
+                    convert(next_record.color.r as f32),
+                    a,
+                ) as u8;
+                colors[(t * 4) + 1] = lerp(
+                    convert(last_record.color.g as f32),
+                    convert(next_record.color.g as f32),
+                    a,
+                ) as u8;
+                colors[(t * 4) + 2] = lerp(
+                    convert(last_record.color.b as f32),
+                    convert(next_record.color.b as f32),
+                    a,
+                ) as u8;
+                colors[(t * 4) + 3] =
+                    lerp(last_record.color.a as f32, next_record.color.a as f32, a) as u8;
             }
 
-            colors[i] = color;
-            ratios[i] = f32::from(record.ratio) / 255.0;
-        }
-
-        for i in num_colors..MAX_GRADIENT_COLORS {
-            ratios[i] = ratios[i - 1];
-            colors[i] = colors[i - 1];
-        }
+            colors
+        };
 
         Self {
             matrix,
@@ -1653,7 +1721,6 @@ impl Gradient {
                 GradientType::Radial => 1,
                 GradientType::Focal => 2,
             },
-            ratios,
             colors,
             repeat_mode: match gradient.repeat_mode {
                 swf::GradientSpread::Pad => 0,
@@ -1749,7 +1816,7 @@ struct ShaderProgram {
 }
 
 // These should match the uniform names in the shaders.
-const NUM_UNIFORMS: usize = 12;
+const NUM_UNIFORMS: usize = 10;
 const UNIFORM_NAMES: [&str; NUM_UNIFORMS] = [
     "world_matrix",
     "view_matrix",
@@ -1757,8 +1824,6 @@ const UNIFORM_NAMES: [&str; NUM_UNIFORMS] = [
     "add_color",
     "u_matrix",
     "u_gradient_type",
-    "u_ratios",
-    "u_colors",
     "u_repeat_mode",
     "u_focal_point",
     "u_interpolation",
@@ -1772,8 +1837,6 @@ enum ShaderUniform {
     AddColor,
     TextureMatrix,
     GradientType,
-    GradientRatios,
-    GradientColors,
     GradientRepeatMode,
     GradientFocalPoint,
     GradientInterpolation,
@@ -1841,12 +1904,6 @@ impl ShaderProgram {
         }
     }
 
-    fn uniform1fv(&self, gl: &Arc<glow::Context>, uniform: ShaderUniform, values: &[f32]) {
-        unsafe {
-            gl.uniform_1_f32_slice(self.uniforms[uniform as usize].as_ref(), values);
-        }
-    }
-
     fn uniform1i(&self, gl: &Arc<glow::Context>, uniform: ShaderUniform, value: i32) {
         unsafe {
             gl.uniform_1_i32(self.uniforms[uniform as usize].as_ref(), value);
@@ -1909,12 +1966,14 @@ impl GlExt for glow::Context {
 }
 
 /// Converts an RGBA color from sRGB space to linear color space.
-fn srgb_to_linear(color: &mut [f32; 4]) {
-    for n in &mut color[..3] {
-        *n = if *n <= 0.04045 {
-            *n / 12.92
-        } else {
-            f32::powf((*n + 0.055) / 1.055, 2.4)
-        };
+fn srgb_to_linear(color: f32) -> f32 {
+    if color <= 0.04045 {
+        color / 12.92
+    } else {
+        f32::powf((color + 0.055) / 1.055, 2.4)
     }
+}
+
+fn lerp(a: f32, b: f32, t: f32) -> f32 {
+    a + (b - a) * t
 }
